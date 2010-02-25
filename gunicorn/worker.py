@@ -56,6 +56,7 @@ class Worker(object):
         map(lambda s: signal.signal(s, signal.SIG_DFL), self.SIGNALS)
         signal.signal(signal.SIGQUIT, self.handle_quit)
         signal.signal(signal.SIGUSR1, self.handle_usr1)
+        signal.signal(signal.SIGUSR2, self.handle_usr2)
         signal.signal(signal.SIGTERM, self.handle_exit)
         signal.signal(signal.SIGINT, self.handle_exit)
         
@@ -65,7 +66,11 @@ class Worker(object):
             map(lambda p: p.close(), self.PIPE)
         except:
             pass
-            
+    
+    def handle_usr2(self, sig, frame):
+        stack = traceback.format_stack(frame)
+        self.log.critical("WORKER STACK:\n%s" % "".join(stack))
+
     def handle_quit(self, sig, frame):
         self.alive = False
 
