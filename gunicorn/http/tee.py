@@ -40,6 +40,15 @@ class TeeInput(object):
             self._finalize()
             self.tmp.seek(0)
         
+    def __str__(self):
+        prop_names = """
+            buf socket _is_socket _len tmp
+        """
+        props = []
+        for pn in prop_names:
+            props.append("    %s: %s" % (pn, getattr(self, pn)))
+        return '\n'.join(props)
+        
     @property
     def len(self):
         if self._len: return self._len

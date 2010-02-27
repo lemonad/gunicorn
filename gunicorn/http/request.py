@@ -51,12 +51,16 @@ class Request(object):
         self.start_response_called = False
         self.log = logging.getLogger(__name__)
         self.response_chunked = False
+        
+        # USR2 Debugging
+        self.tee = None
 
     def __str__(self):
         prop_names = """
             debug socket client_address server_address
             response_status response_headers _version
             parser start_response_called response_chunked
+            tee
         """.split()
         props = []
         for pn in prop_names:
@@ -84,9 +88,9 @@ class Request(object):
             self.socket.send("100 Continue\n")
             
         if not self.parser.content_len and not self.parser.is_chunked:
-            wsgi_input = StringIO.StringIO()
+            self.tee = wsgi_input = StringIO.StringIO()
         else:
-            wsgi_input = TeeInput(self.socket, self.parser, buf[i:])
+            self.tee = wsgi_input = TeeInput(self.socket, self.parser, buf[i:])
                 
         # This value should evaluate true if an equivalent application
         # object may be simultaneously invoked by another process, and
