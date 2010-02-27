@@ -52,6 +52,17 @@ class Request(object):
         self.log = logging.getLogger(__name__)
         self.response_chunked = False
 
+    def __str__(self):
+        prop_names = """
+            debug socket client_address server_address
+            response_status response_headers _version
+            parser start_response_called response_chunked
+        """.split()
+        props = []
+        for pn in prop_names:
+            props.append("  %s: %s" % (pn, getattr(self, pn)))
+        return '\n'.join(props)
+
     def read(self):
         environ = {}
         headers = []

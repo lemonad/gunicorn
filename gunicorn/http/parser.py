@@ -29,7 +29,20 @@ class Parser(object):
         self.start_offset = 0
         self.chunk_size = 0
         self._chunk_eof = False      
-        
+    
+    def __str__(self):
+        import pprint
+        prop_names = """
+            status headers headers_dict
+            raw_version raw_path version method path query_string fragment
+            _content_len start_offset chunk_size _chunk_eof
+        """.split()
+        props = ['']
+        for pn in prop_names:
+            value = pprint.pformat(getattr(self, pn))
+            props.append("    %s: %s" % (pn, value))
+        return '\n'.join(props)
+    
     def filter_headers(self, headers, buf):
         """ take a string as buffer and an header dict 
         (empty or not). It return new position or -1 

@@ -44,6 +44,8 @@ class Worker(object):
         self.log = logging.getLogger(__name__)
         self.spinner = 0
         self.address = self.socket.getsockname()
+        # USR2 Debugging
+        self.req = None
         
     def __str__(self):
         return "<Worker %s>" % self.id
@@ -70,6 +72,7 @@ class Worker(object):
     def handle_usr2(self, sig, frame):
         stack = traceback.format_stack(frame)
         self.log.critical("WORKER STACK:\n%s" % "".join(stack))
+        self.log.critical("REQUEST OBJECT:\n%s" % self.req)
 
     def handle_quit(self, sig, frame):
         self.alive = False
@@ -149,10 +152,10 @@ class Worker(object):
     def handle(self, client, addr):
         util.close_on_exec(client)
         try:
-            req = http.Request(client, addr, self.address, self.debug)
+            self.req = http.Request(client, addr, self.address, self.debug)
 
             try:
-                response = self.app(req.read(), req.start_response)
+                response = self.app(self.req.read(), self.req.start_response)
             except Exception, e:
                 # Only send back traceback in HTTP in debug mode.
                 if not self.debug:
@@ -160,7 +163,7 @@ class Worker(object):
                 util.write_error(client, traceback.format_exc())
                 return 
 
-            http.Response(client, response, req).send()
+            http.Response(client, response, self.req).send()
         except socket.error, e:
             if e[0] != errno.EPIPE:
                 self.log.exception("Error processing request.")
